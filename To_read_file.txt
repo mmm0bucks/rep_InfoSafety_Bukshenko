@@ -1,0 +1,1 @@
+This is a sample text for testing the Vigenère cipher encryption and decryption.
