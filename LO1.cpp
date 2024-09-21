@@ -4,116 +4,97 @@
 
 using namespace std;
 
-// Функция для шифрования текста с использованием таблицы Виженера
-string vigenereCipher(const string& text, const string& key, bool decrypt = false) {
-    string result;
-    int keyLength = key.size();
+// Функция для шифрования/дешифровки по таблице Виженера с использованием всех 256 символов
+std::string vigenere(const std::string& text, const std::string& key, bool encrypt) {
+    std::string result;
+    size_t key_len = key.size();
 
     for (size_t i = 0; i < text.size(); ++i) {
-        char c = text[i];
-        // Приведение символа к типу unsigned char
-        if (isalpha(static_cast<unsigned char>(c))) {
-            char base = isupper(static_cast<unsigned char>(c)) ? 'A' : 'a';
-            int keyIndex = (i % keyLength);
-            char keyChar = key[keyIndex];
-            int keyShift = (tolower(static_cast<unsigned char>(keyChar)) - 'a') * (decrypt ? -1 : 1);
-            result += char(int(base + (c - base + keyShift + 26) % 26));
+        // Берем текущий символ текста и ключа
+        unsigned char text_char = static_cast<unsigned char>(text[i]);
+        unsigned char key_char = static_cast<unsigned char>(key[i % key_len]);
+
+        // Шифрование: прибавляем значение ключа к тексту по модулю 256
+        if (encrypt) {
+            result += static_cast<char>((text_char + key_char) % 256);
         }
+        // Дешифровка: вычитаем значение ключа из текста по модулю 256
         else {
-            result += c; // Не шифровать символы, не являющиеся буквами
+            result += static_cast<char>((text_char - key_char + 256) % 256);
         }
     }
 
     return result;
 }
-
-// Функция для чтения файла в строку
-string readFile(const string& filename) {
-    ifstream file(filename, ios::in | ios::binary);
-    if (!file) {
-        throw runtime_error("Error with open file to read: " + filename);
+// Функция для работы с файлами и выполнения шифрования/дешифровки
+void processFile(const std::string& input_file, const std::string& output_file, const std::string& key, bool encrypt) {
+    // Открытие входного файла
+    std::ifstream infile(input_file, std::ios::binary);
+    if (!infile) {
+        std::cerr << "Error: cannot open input file " << input_file << '\n';
+        return;
     }
 
-    string content((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>()));
-    file.close();
-    return content;
-}
+    // Чтение входного файла в строку
+    std::string text((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
+    infile.close();
 
-// Функция для записи строки в файл
-void writeFile(const string& filename, const string& content) {
-    ofstream file(filename, ios::out | ios::binary);
-    if (!file) {
-        throw runtime_error("Error with open file to write: " + filename);
+    // Шифрование или дешифровка
+    std::string result = vigenere(text, key, encrypt);
+
+    // Запись результата в выходной файл
+    std::ofstream outfile(output_file, std::ios::binary);
+    if (!outfile) {
+        std::cerr << "Error: cannot open output file " << output_file << '\n';
+        return;
     }
 
-    file.write(content.c_str(), content.size());
-    file.close();
-}
+    outfile.write(result.c_str(), result.size());
+    outfile.close();
 
-// Меню программы
-void displayMenu() {
-    cout << "Main\n";
-    cout << "1. Encode file\n";
-    cout << "2. Decode file\n";
-    cout << "3. Exit\n";
-    cout << "Choose the variant: ";
+    std::cout << (encrypt ? "Encryption" : "Decryption") << " complete. Output written to " << output_file << '\n';
 }
 
 int main() {
+    std::string input_file, output_file, key;
     int choice;
-    string inputFile, outputFile, key;
+    system("chcp 1251");
 
-    do {
-        displayMenu();
-        cin >> choice;
+    while (true) {
+        // Меню
+        std::cout << "Vigenere Cipher (256 symbols)\n";
+        std::cout << "1. Encrypt a file\n";
+        std::cout << "2. Decrypt a file\n";
+        std::cout << "3. Exit\n";
+        std::cout << "Enter your choice (1-3): ";
+        std::cin >> choice;
 
-        switch (choice) {
-        case 1: {
-            cout << "Enter file to encode: ";
-            cin >> inputFile;
-            cout << "Enter file to write in: ";
-            cin >> outputFile;
-            cout << "Enter the key of encoding: ";
-            cin >> key;
+        // Обработка выбора
+        if (choice == 1 || choice == 2) {
+            std::cout << "Enter input file name: ";
+            std::cin >> input_file;
 
-            try {
-                string content = readFile(inputFile);
-                string encrypted = vigenereCipher(content, key, false);
-                writeFile(outputFile, encrypted);
-                cout << "Succes " << outputFile << endl;
-            }
-            catch (const exception& e) {
-                cerr << "Error " << e.what() << endl;
-            }
+            std::cout << "Enter output file name: ";
+            std::cin >> output_file;
+
+            std::cout << "Enter key (password): ";
+            std::cin >> key;
+
+            // Определяем режим (шифрование или дешифровка)
+            bool encrypt = (choice == 1);
+
+            // Выполняем процесс шифрования/дешифровки
+            processFile(input_file, output_file, key, encrypt);
+        }
+        else if (choice == 3) {
+            std::cout << "Exiting...\n";
             break;
         }
-        case 2: {
-            cout << "Enter file to decode: ";
-            cin >> inputFile;
-            cout << "Enter file to write in: ";
-            cin >> outputFile;
-            cout << "Enter the key of decoding: ";
-            cin >> key;
-
-            try {
-                string content = readFile(inputFile);
-                string decrypted = vigenereCipher(content, key, true);
-                writeFile(outputFile, decrypted);
-                cout << "Succes " << outputFile << endl;
-            }
-            catch (const exception& e) {
-                cerr << "Error " << e.what() << endl;
-            }
-            break;
+        else {
+            std::cout << "Invalid choice. Please enter 1, 2, or 3.\n";
         }
-        case 3:
-            cout << "Execution...\n";
-            break;
-        default:
-            cout << "Wrong choice. Try again.\n";
-            break;
-        }
-    } while (choice != 3);
+    }
 
     return 0;
 }
+
