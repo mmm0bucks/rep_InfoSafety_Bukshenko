@@ -11,6 +11,7 @@ std::string vigenere(const std::string& text, const std::string& key, bool encry
 
     for (size_t i = 0; i < text.size(); ++i) {
         // Берем текущий символ текста и ключа
+        // Считыване
         unsigned char text_char = static_cast<unsigned char>(text[i]);
         unsigned char key_char = static_cast<unsigned char>(key[i % key_len]);
 
@@ -31,7 +32,7 @@ void processFile(const std::string& input_file, const std::string& output_file, 
     // Открытие входного файла
     std::ifstream infile(input_file, std::ios::binary);
     if (!infile) {
-        std::cerr << "Error: cannot open input file " << input_file << '\n';
+        std::cerr << "Ошибка: невозможно открыть файл для чтения " << input_file << '\n';
         return;
     }
 
@@ -45,14 +46,14 @@ void processFile(const std::string& input_file, const std::string& output_file, 
     // Запись результата в выходной файл
     std::ofstream outfile(output_file, std::ios::binary);
     if (!outfile) {
-        std::cerr << "Error: cannot open output file " << output_file << '\n';
+        std::cerr << "Ошибка: невозможно открыть файл для записи " << output_file << '\n';
         return;
     }
 
     outfile.write(result.c_str(), result.size());
     outfile.close();
 
-    std::cout << (encrypt ? "Encryption" : "Decryption") << " complete. Output written to " << output_file << '\n';
+    std::cout << (encrypt ? "Кодирование" : "Раскодирование") << " выполнено. Записано в файл " << output_file << '\n';
 }
 
 int main() {
@@ -62,22 +63,22 @@ int main() {
 
     while (true) {
         // Меню
-        std::cout << "Vigenere Cipher (256 symbols)\n";
-        std::cout << "1. Encrypt a file\n";
-        std::cout << "2. Decrypt a file\n";
-        std::cout << "3. Exit\n";
-        std::cout << "Enter your choice (1-3): ";
+        std::cout << "Шифр Вижинера (256 символов)\n";
+        std::cout << "1. Закодировать файл\n";
+        std::cout << "2. Раскодировать файл\n";
+        std::cout << "3. Выход\n";
+        std::cout << "Выберите пункт меню (1-3): ";
         std::cin >> choice;
 
         // Обработка выбора
         if (choice == 1 || choice == 2) {
-            std::cout << "Enter input file name: ";
+            std::cout << "Введите файл для считывания: ";
             std::cin >> input_file;
 
-            std::cout << "Enter output file name: ";
+            std::cout << "Введите файл для записи: ";
             std::cin >> output_file;
 
-            std::cout << "Enter key (password): ";
+            std::cout << "Введите ключ: ";
             std::cin >> key;
 
             // Определяем режим (шифрование или дешифровка)
@@ -87,11 +88,11 @@ int main() {
             processFile(input_file, output_file, key, encrypt);
         }
         else if (choice == 3) {
-            std::cout << "Exiting...\n";
+            std::cout << "Выход...\n";
             break;
         }
         else {
-            std::cout << "Invalid choice. Please enter 1, 2, or 3.\n";
+            std::cout << "Невалидный ввод. Пожалуйста введите 1, 2, или 3.\n";
         }
     }
 
